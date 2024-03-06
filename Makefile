@@ -14,7 +14,7 @@ dev:
 .PHONY: prisma-migrate
 prisma-migrate: prisma-migrate
 	@echo "Running..."
-	@bun prisma migrate dev
+	@npx prisma migrate dev
 
 .PHONY: prisma-generate
 prisma-generate: prisma-generate

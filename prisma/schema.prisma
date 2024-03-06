@@ -15,16 +15,21 @@ datasource db {
 // User Model Start
 
 model User {
-    id           String  @id @default(uuid())
-    email        String  @unique
-    password     String
-    userName     String  @unique
-    fullName     String
-    profileImage String?
-
-    role Role @default(USER)
+    id          String  @id @default(uuid())
+    email       String  @unique
+    password    String
+    name        String
+    logoUrl     String?
+    url         String?
+    description String
+    role        Role    @default(USER)
 
     // relationship model
+    validatorId String?
+    validators  Validator?
+    nodes       Node?
+    delegators  Delegator?
+
     createdAt DateTime @default(now()) @map("created_at")
     updatedAt DateTime @updatedAt @map("update_at")
 
@@ -32,22 +37,123 @@ model User {
 }
 
 model Checkpoint {
-    id String @id @default(uuid())
+    id                 String  @id @default(uuid())
+    validatorId        Int     @map("validator_id")
+    checkpointNumber   BigInt  @map("checkpoint_number")
+    proposer           Boolean
+    commissionedReward String  @map("commissioned_reward")
+    signerAddress      String? @map("signer_address")
+    timestamp          BigInt
+    totalReward        String  @map("total_reward")
+    transactionHash    String  @map("transaction_hash")
+    validatorReward    String  @map("validator_reward")
+
+    createdAt DateTime @default(now()) @map("created_at")
+    updatedAt DateTime @updatedAt @map("update_at")
 
     @@map("checkpoints")
 }
 
 model Validator {
-    id String @id @default(uuid())
+    id                                 String       @id @default(uuid())
+    validatorId                        Int          @map("validator_Id")
+    owner                              String
+    signer                             String
+    commissionPercent                  String       @map("commission_percent")
+    signerPublicKey                    String       @map("signer_public_key")
+    selfStake                          String       @map("self_stake")
+    delegatedStake                     String       @map("delegated_stake")
+    isInAuction                        String       @map("is_In_auction")
+    claimedReward                      String       @map("claimed_reward")
+    activationEpoch                    String       @map("activation_epoch")
+    totalStaked                        String       @map("total_staked")
+    deactivationEpoch                  String       @map("deactivation_epoch")
+    jailEndEpoch                       String       @map("jail_end_epoch")
+    status                             Status
+    contractAddress                    String       @map("contract_address")
+    uptimePercent                      Int          @map("uptime_percent")
+    delegationEnabled                  Boolean      @map("delegation_enabled")
+    delegatorCount                     Int          @map("delegator_count")
+    delegatorUnclaimedRewards          BigInt       @map("delegator_unclaimed_rewards")
+    validatorUnclaimedRewards          String       @map("validator_unclaimed_rewards")
+    delegatorClaimedRewards            String       @map("delegator_claimed_rewards")
+    checkpointsMissed                  String       @map("checkpoints_missed")
+    checkpointsSigned                  String       @map("checkpoints_signed")
+    missedLatestCheckpointcount        String       @map("missed_latest_checkpointcount")
+    performanceIndex                   String       @map("performance_Index")
+    lastConsideredEngagementCheckpoint String       @map("last_Considered_engagement_checkpoint")
+    currentState                       CurrentState @map("current_state")
+
+    // One to one Relation 
+    user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+    userId String @unique
+
+    createdAt DateTime @default(now()) @map("created_at")
+    updatedAt DateTime @updatedAt @map("update_at")
 
     @@map("validators")
 }
 
+model Delegator {
+    id                     String  @id @default(uuid())
+    amount                 String
+    completed              Boolean
+    validatorId            Int     @map("validator_id")
+    bondedValidator        String  @map("bonded_validator")
+    address                String
+    claimedReward          String  @map("claimed_reward")
+    shares                 String
+    deactivationEpoch      String  @map("deactivation_epoch")
+    unbondStartedTxHash    String  @map("unbond_started_tx_hash")
+    unbondStartedTimestamp String  @map("unbond_started_timestamp")
+    unbondClaimedTxHash    String  @map("unbond_claimed_tx_hash")
+    unbondClaimedTimestamp String  @map("unbond_claimed_timestamp")
+
+    // One to one Relation 
+    user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+    userId String @unique
+
+    @@map("Delegator")
+}
+
+model Node {
+    id       String   @id @default(uuid())
+    nodetype NodeType
+    serverIp String?  @map("server_ip")
+
+    // One to one Relation 
+    user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+    userId String @unique
+
+    @@map("Node")
+}
+
 // // ---------------ENUM SECTION---------------
 
-// // user Role:
+enum NodeType {
+    SENTRY_FULL
+    SENTRY_ARCHIVE
+    RPC
+    VALIDATOR
+}
+
+// user Role:
 enum Role {
     USER
     VALIDATOR
+    DELEGATOR
     ADMIN
+}
+
+enum Status {
+    ACTIVE
+    INACTIVE
+    LOCKED
+    UNSTAKED
+}
+
+enum CurrentState {
+    OFFBOARDED
+    HEALTHY
+    UNHEALTHY
 }

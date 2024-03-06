@@ -7,6 +7,8 @@ import { expressMiddleware } from '@apollo/server/express4';
 import { ApolloServerPluginDrainHttpServer } from '@apollo/server/plugin/drainHttpServer'
 import cors from 'cors';
 import express from 'express';
+import { IContext, authGraphMiddleware } from './middlewares/authMiddleware';
+
 import {
   ApolloServerPluginLandingPageProductionDefault,
   ApolloServerPluginLandingPageLocalDefault
@@ -50,6 +52,7 @@ class Server {
       const server = new ApolloServer<MyContext>({
         typeDefs,
         resolvers,
+        introspection: process.env.NODE_ENV !== 'production',
         // schemaDirectives: directives,
         // context: ({ req }) => {
         //   let user = {};
@@ -109,7 +112,7 @@ class Server {
         // expressMiddleware accepts the same arguments:
         // an Apollo Server instance and optional configuration options
         expressMiddleware(server, {
-          context: async ({ req }) => ({ token: req.headers.token }),
+          context: authGraphMiddleware,
         }),);
 
       // Health Route
